@@ -31,3 +31,6 @@ infra/terraform/.terraform.lock.hcl
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude の設定
+CLAUDE.md
