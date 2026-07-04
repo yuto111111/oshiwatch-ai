@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     env: str = "development"
 
+    # Crawl
+    crawl_user_agent: str = "Mozilla/5.0 (compatible; OshiWatchAI/1.0)"
+    crawl_request_timeout: float = 15.0
+    snowman_official_schedule_url: str = "https://starto.jp/s/p/artist/43"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

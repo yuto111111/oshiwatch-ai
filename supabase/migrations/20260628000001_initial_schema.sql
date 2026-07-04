@@ -61,3 +61,17 @@ insert into members (name, name_en, color) values
   ('佐久間大介','daisuke-sakuma',   '#ED64A6'),
   ('目黒蓮',   'ren-meguro',       '#38B2AC'),
   ('ラウール',  'raul',             '#9F7AEA');
+
+-- RLS: バックエンドは service_role キーで接続するため RLS の影響を受けないが、
+-- 「Automatically expose new tables」を無効化した分、公開読み取り用のポリシーを明示しておく
+alter table members enable row level security;
+create policy "members_select_public" on members for select using (true);
+
+alter table daily_summaries enable row level security;
+create policy "daily_summaries_select_public" on daily_summaries for select using (true);
+
+alter table events enable row level security;
+create policy "events_select_public" on events for select using (true);
+
+alter table articles enable row level security;
+create policy "articles_select_public" on articles for select using (true);
