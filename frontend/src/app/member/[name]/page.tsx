@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Calendar, Sparkles } from "lucide-react";
 
 import { apiFetch, ApiError } from "@/lib/api";
+import ChatPanel from "@/components/ChatPanel";
 import type { MemberDetail } from "@/types/summary";
 
 type Props = { params: { name: string } };
@@ -138,8 +139,8 @@ export default async function MemberPage({ params }: Props) {
 
         {/* AI チャット */}
         <section className="card p-6">
-          <h2 className="text-lg font-bold text-gray-700 mb-2">AI に質問する</h2>
-          <p className="text-gray-400">（チャット UI を実装予定）</p>
+          <h2 className="text-lg font-bold text-gray-700 mb-3">AI に質問する</h2>
+          <ChatPanel memberName={member.name_en} memberDisplayName={member.name} />
         </section>
       </div>
     </main>

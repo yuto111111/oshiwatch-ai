@@ -145,5 +145,91 @@ class GeminiClient:
                 ev["source_url"] = None
         return events
 
+    # ------------------------------------------------------------------
+    # RAGチャット
+    # ------------------------------------------------------------------
+    def embed_texts(self, texts: list[str], task_type: str = "RETRIEVAL_DOCUMENT") -> list[list[float]]:
+        if not texts:
+            return []
+        response = self.client.models.embed_content(
+            model=settings.embedding_model,
+            contents=texts,
+            config=genai_types.EmbedContentConfig(task_type=task_type),
+        )
+        return [e.values for e in response.embeddings]
+
+    def embed_query(self, text: str) -> list[float]:
+        return self.embed_texts([text], task_type="RETRIEVAL_QUERY")[0]
+
+    def build_chat_prompt(
+        self,
+        name: str,
+        history: list,
+        question: str,
+        context_chunks: list[str] | None,
+    ) -> str:
+        from src.jobs.prompts import load_prompt
+
+        context_block = (
+            "\n\n".join(f"[資料{i + 1}] {c}" for i, c in enumerate(context_chunks))
+            if context_chunks
+            else "(該当する資料なし。一般知識やWeb検索結果をもとに回答してください)"
+        )
+        system = load_prompt("chat_system.txt").format(name=name, context_block=context_block)
+
+        parts = [system]
+        history_lines = [
+            f"{'ユーザー' if m.role == 'user' else 'アシスタント'}: {m.content}" for m in history
+        ]
+        if history_lines:
+            parts.append("【これまでの会話】\n" + "\n".join(history_lines))
+        parts.append(f"ユーザー: {question}\nアシスタント:")
+        return "\n\n".join(parts)
+
+    def stream_chat(self, prompt: str, use_search: bool):
+        """回答をトークン単位でストリーミングする。
+
+        yield する dict:
+          {"type": "delta", "text": "..."}
+          {"type": "grounding_sources", "sources": [...]}  # use_search=True のときのみ、最後に1回
+        """
+        tools = [genai_types.Tool(google_search=genai_types.GoogleSearch())] if use_search else None
+        config = genai_types.GenerateContentConfig(
+            temperature=0.5,
+            max_output_tokens=2048,
+            tools=tools,
+            thinking_config=genai_types.ThinkingConfig(thinking_budget=0),
+        )
+        stream = self.client.models.generate_content_stream(
+            model=self.model_name, contents=prompt, config=config
+        )
+
+        sources: list[str] = []
+        for chunk in stream:
+            delta = ""
+            try:
+                delta = chunk.text or ""
+            except (ValueError, AttributeError):
+                pass
+            if delta:
+                yield {"type": "delta", "text": delta}
+
+            if use_search:
+                try:
+                    for cand in getattr(chunk, "candidates", []) or []:
+                        gm = getattr(cand, "grounding_metadata", None)
+                        if not gm:
+                            continue
+                        for gc in getattr(gm, "grounding_chunks", []) or []:
+                            web = getattr(gc, "web", None)
+                            uri = getattr(web, "uri", None) if web else None
+                            if uri and uri not in sources:
+                                sources.append(uri)
+                except Exception:
+                    logger.debug("failed to parse grounding metadata", exc_info=True)
+
+        if use_search and sources:
+            yield {"type": "grounding_sources", "sources": sources[:4]}
+
 
 gemini_client = GeminiClient()

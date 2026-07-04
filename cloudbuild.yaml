@@ -1,0 +1,119 @@
+steps:
+  # --- Backend (API) ---
+  - name: "gcr.io/cloud-builders/docker"
+    id: build-backend
+    args:
+      - build
+      - -f
+      - backend/Dockerfile.api
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+      - backend
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: push-backend
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+    waitFor: ["build-backend"]
+
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: deploy-backend
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - oshiwatch-backend
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --service-account=oshiwatch-jobs@${PROJECT_ID}.iam.gserviceaccount.com
+      - --set-env-vars=SUPABASE_URL=${_SUPABASE_URL},GOOGLE_CLOUD_PROJECT=${PROJECT_ID},VERTEX_AI_LOCATION=${_REGION},CORS_ORIGINS=${_FRONTEND_URL}
+      - --set-secrets=SUPABASE_SERVICE_ROLE_KEY=supabase-service-role-key:latest
+      - --min-instances=0
+      - --max-instances=2
+      - --quiet
+    waitFor: ["push-backend"]
+
+  # --allow-unauthenticated がデプロイ時に反映されないことがあるため明示的に設定する
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: publicize-backend
+    entrypoint: gcloud
+    args:
+      - run
+      - services
+      - add-iam-policy-binding
+      - oshiwatch-backend
+      - --region=${_REGION}
+      - --member=allUsers
+      - --role=roles/run.invoker
+      - --quiet
+    waitFor: ["deploy-backend"]
+
+  # --- Frontend (Next.js) ---
+  # NEXT_PUBLIC_API_BASE_URL はビルド時に埋め込む必要があるため、
+  # backend の URL は固定値（Cloud Run の予測可能な URL 形式）を使う
+  - name: "gcr.io/cloud-builders/docker"
+    id: build-frontend
+    args:
+      - build
+      - -f
+      - frontend/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+      - --build-arg
+      - NEXT_PUBLIC_API_BASE_URL=${_BACKEND_URL}
+      - frontend
+    waitFor: ["publicize-backend"]
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: push-frontend
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+    waitFor: ["build-frontend"]
+
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: deploy-frontend
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - oshiwatch-frontend
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --min-instances=0
+      - --max-instances=2
+      - --quiet
+    waitFor: ["push-frontend"]
+
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: publicize-frontend
+    entrypoint: gcloud
+    args:
+      - run
+      - services
+      - add-iam-policy-binding
+      - oshiwatch-frontend
+      - --region=${_REGION}
+      - --member=allUsers
+      - --role=roles/run.invoker
+      - --quiet
+    waitFor: ["deploy-frontend"]
+
+substitutions:
+  _REGION: asia-northeast1
+  _REPO: oshiwatch-jobs
+  _SUPABASE_URL: https://pgrlbrvkhoosuwrzuvbo.supabase.co
+  _BACKEND_URL: https://oshiwatch-backend-630341683686.asia-northeast1.run.app
+  _FRONTEND_URL: https://oshiwatch-frontend-630341683686.asia-northeast1.run.app
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/frontend:${SHORT_SHA}
+
+options:
+  logging: CLOUD_LOGGING_ONLY
