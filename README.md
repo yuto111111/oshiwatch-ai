@@ -33,3 +33,21 @@ npm run dev
 ## CI/CD
 
 `main` ブランチへの push で Cloud Build が自動起動し、Cloud Run へデプロイされます。
+
+## インフラ（Terraform）
+
+GCPプロジェクトの骨格（API有効化・サービスアカウント・IAM・Artifact Registry・Secret Manager・
+Cloud Run Job・Cloud Scheduler・Cloud Build トリガー）は `infra/terraform/` でコード管理しています。
+`oshiwatch-backend`/`oshiwatch-frontend`（Cloud Run Service）はCI/CDが継続的にデプロイするため、
+Terraformの管理対象外です。
+
+```bash
+cd infra/terraform
+terraform init
+export TF_VAR_supabase_service_role_key="<Supabaseのservice_roleキー>"
+terraform plan
+terraform apply
+```
+
+状態ファイルは `gs://oshiwatch-ai-tfstate` で共有しているので、チームメンバーは各自
+`gcloud auth application-default login` 済みの状態で上記コマンドを実行すれば同じ状態を参照できます。
