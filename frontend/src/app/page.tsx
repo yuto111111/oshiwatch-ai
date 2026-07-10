@@ -15,15 +15,7 @@ export default async function Home() {
       {/* ヒーローバナー */}
       <div className="bg-gradient-to-br from-accent to-primary text-white">
         <div className="max-w-5xl mx-auto px-4 py-10">
-          <p className="text-sm text-white/80 mb-1">
-            OshiWatch AI ·{" "}
-            {groupSummary.date ??
-              new Date().toLocaleDateString("ja-JP", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-          </p>
+          <p className="text-sm text-white/80 mb-1">OshiWatch AI</p>
           <h1 className="text-3xl font-bold mb-2">OshiWatch AI</h1>
           <p className="text-white/90">
             Snow Man の最新情報を AI が自動収集・要約
