@@ -88,20 +88,11 @@ export default async function MemberPage({ params }: Props) {
           )}
         </section>
 
-        {/* サマリー履歴 */}
-        {summaries.length > 1 && (
-          <section className="card p-6 mb-6">
-            <h2 className="text-lg font-bold text-gray-700 mb-3">サマリー履歴</h2>
-            <ul className="space-y-3">
-              {summaries.slice(1).map((s) => (
-                <li key={s.date} className="border-b border-gray-100 pb-2 last:border-0">
-                  <p className="text-xs text-gray-400 mb-1">{s.date}</p>
-                  <p className="text-sm text-gray-600">{s.summary}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        {/* AI チャット (推し活AI 本家と同じくサマリ直下に配置) */}
+        <section className="card p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-700 mb-3">AI に質問する</h2>
+          <ChatPanel memberName={member.name_en} memberDisplayName={member.name} />
+        </section>
 
         {/* 予定一覧 */}
         <section className="card p-6 mb-6">
@@ -137,11 +128,20 @@ export default async function MemberPage({ params }: Props) {
           )}
         </section>
 
-        {/* AI チャット */}
-        <section className="card p-6">
-          <h2 className="text-lg font-bold text-gray-700 mb-3">AI に質問する</h2>
-          <ChatPanel memberName={member.name_en} memberDisplayName={member.name} />
-        </section>
+        {/* サマリー履歴 */}
+        {summaries.length > 1 && (
+          <section className="card p-6">
+            <h2 className="text-lg font-bold text-gray-700 mb-3">サマリー履歴</h2>
+            <ul className="space-y-3">
+              {summaries.slice(1).map((s) => (
+                <li key={s.date} className="border-b border-gray-100 pb-2 last:border-0">
+                  <p className="text-xs text-gray-400 mb-1">{s.date}</p>
+                  <p className="text-sm text-gray-600">{s.summary}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </main>
   );

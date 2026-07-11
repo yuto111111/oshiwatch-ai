@@ -8,10 +8,27 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8
 type Source = { title: string; url: string };
 type Message = { role: "user" | "assistant"; content: string; sources?: Source[] };
 
-export default function ChatPanel({ memberName, memberDisplayName }: { memberName: string; memberDisplayName: string }) {
+type Props = {
+  /** メンバー詳細ページから使う場合の対象メンバー name_en (単一メンバー チャット) */
+  memberName?: string;
+  memberDisplayName?: string;
+  /** ダッシュボードから使う場合のユーザー ID (フォロー中の推し横断チャット) */
+  userId?: string;
+  /** チャット欄の空状態プレースホルダに表示する名前 (どちらのケースでも表示用) */
+  displayName?: string;
+};
+
+export default function ChatPanel({
+  memberName,
+  memberDisplayName,
+  userId,
+  displayName,
+}: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+
+  const placeholderName = memberDisplayName ?? displayName ?? "推し";
 
   const handleSend = async () => {
     const question = input.trim();
@@ -23,13 +40,16 @@ export default function ChatPanel({ memberName, memberDisplayName }: { memberNam
     setIsStreaming(true);
 
     try {
+      const body: Record<string, unknown> = {
+        messages: history.map((m) => ({ role: m.role, content: m.content })),
+      };
+      if (memberName) body.member_name = memberName;
+      if (userId) body.user_id = userId;
+
       const res = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          member_name: memberName,
-          messages: history.map((m) => ({ role: m.role, content: m.content })),
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.body) throw new Error("no response body");
@@ -85,7 +105,7 @@ export default function ChatPanel({ memberName, memberDisplayName }: { memberNam
     <div className="flex flex-col gap-4">
       {messages.length === 0 && (
         <p className="text-gray-400 text-sm">
-          {memberDisplayName}について気になることを質問してみてください。
+          {placeholderName}について気になることを質問してみてください。
         </p>
       )}
 
@@ -103,7 +123,7 @@ export default function ChatPanel({ memberName, memberDisplayName }: { memberNam
               {m.role === "assistant" && (
                 <div className="flex items-center gap-1 text-xs text-primary mb-1 font-medium">
                   <Sparkles className="w-3 h-3" />
-                  OshiWatch AI
+                  推し活AI
                 </div>
               )}
               <p className="whitespace-pre-wrap">

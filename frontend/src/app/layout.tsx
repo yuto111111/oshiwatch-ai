@@ -5,8 +5,9 @@ import { Music2 } from "lucide-react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OshiWatch AI",
-  description: "Snow Man の最新情報を AI が自動収集・要約",
+  title: "推し活AI",
+  description:
+    "アイドル・K-POP など推しの動向、あなたの推し活の活動記録、チケットや予定の管理を推し活AI一つで。",
 };
 
 export default function RootLayout({
@@ -23,7 +24,7 @@ export default function RootLayout({
               <span className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center">
                 <Music2 className="w-4 h-4" />
               </span>
-              OshiWatch AI
+              推し活AI
             </Link>
           </div>
         </header>
@@ -35,8 +36,8 @@ export default function RootLayout({
             <span className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
               <Music2 className="w-3 h-3" />
             </span>
-            <span>OshiWatch AI · Snow Man の最新情報を AI が自動収集・要約</span>
-            <span className="ml-auto">&copy; 2026 OshiWatch AI</span>
+            <span>推し活AI · 推しの動向を AI がまとめる</span>
+            <span className="ml-auto">&copy; 2026 推し活AI</span>
           </div>
         </footer>
       </body>

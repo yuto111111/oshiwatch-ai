@@ -167,6 +167,7 @@ class GeminiClient:
         history: list,
         question: str,
         context_chunks: list[str] | None,
+        user_context: str = "",
     ) -> str:
         from src.jobs.prompts import load_prompt
 
@@ -175,7 +176,9 @@ class GeminiClient:
             if context_chunks
             else "(該当する資料なし。一般知識やWeb検索結果をもとに回答してください)"
         )
-        system = load_prompt("chat_system.txt").format(name=name, context_block=context_block)
+        system = load_prompt("chat_system.txt").format(
+            name=name, context_block=context_block, user_context=user_context or ""
+        )
 
         parts = [system]
         history_lines = [

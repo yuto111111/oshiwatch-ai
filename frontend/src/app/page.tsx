@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Calendar, Sparkles } from "lucide-react";
+import { Calendar, Sparkles, Heart } from "lucide-react";
 
 import { apiFetch } from "@/lib/api";
 import type { GroupSummary, MemberSummaries } from "@/types/summary";
@@ -15,11 +15,33 @@ export default async function Home() {
       {/* ヒーローバナー */}
       <div className="bg-gradient-to-br from-accent to-primary text-white">
         <div className="max-w-5xl mx-auto px-4 py-10">
-          <p className="text-sm text-white/80 mb-1">OshiWatch AI</p>
-          <h1 className="text-3xl font-bold mb-2">OshiWatch AI</h1>
-          <p className="text-white/90">
-            Snow Man の最新情報を AI が自動収集・要約
+          <p className="text-sm text-white/80 mb-1">推し活AI</p>
+          <h1 className="text-3xl font-bold mb-2">推し活AI</h1>
+          <p className="text-white/90 max-w-2xl">
+            アイドル・K-POP など<strong>推しの動向</strong>、あなたの推し活の活動記録、
+            チケットや予定の管理を推し活AI一つで。
           </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/demo_uta"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/95 text-primary text-sm font-semibold px-4 py-2 hover:bg-white transition-colors"
+            >
+              <Heart className="w-3.5 h-3.5" />
+              Uta さんの推し活を体験
+            </Link>
+            <Link
+              href="/dashboard/demo_ren"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/20 text-white text-sm font-semibold px-4 py-2 hover:bg-white/30 border border-white/30 transition-colors"
+            >
+              箱推しダッシュボード
+            </Link>
+            <Link
+              href="/dashboard/demo_sho"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/20 text-white text-sm font-semibold px-4 py-2 hover:bg-white/30 border border-white/30 transition-colors"
+            >
+              単推しダッシュボード
+            </Link>
+          </div>
         </div>
       </div>
 

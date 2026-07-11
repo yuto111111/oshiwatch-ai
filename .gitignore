@@ -35,3 +35,6 @@ Thumbs.db
 
 # Claude の設定
 CLAUDE.md
+
+# Supabase CLI ローカルキャッシュ
+supabase/.temp/
