@@ -197,10 +197,31 @@ class GeminiClient:
           {"type": "grounding_sources", "sources": [...]}  # use_search=True のときのみ、最後に1回
         """
         tools = [genai_types.Tool(google_search=genai_types.GoogleSearch())] if use_search else None
+        # 出力側ガードライン: 有害コンテンツ (性的 / 危険 / 誹謗中傷 / 差別) の
+        # 高信頼度カテゴリを Vertex AI 側で自動ブロックする
+        safety_settings = [
+            genai_types.SafetySetting(
+                category="HARM_CATEGORY_HARASSMENT",
+                threshold="BLOCK_MEDIUM_AND_ABOVE",
+            ),
+            genai_types.SafetySetting(
+                category="HARM_CATEGORY_HATE_SPEECH",
+                threshold="BLOCK_MEDIUM_AND_ABOVE",
+            ),
+            genai_types.SafetySetting(
+                category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold="BLOCK_MEDIUM_AND_ABOVE",
+            ),
+            genai_types.SafetySetting(
+                category="HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold="BLOCK_MEDIUM_AND_ABOVE",
+            ),
+        ]
         config = genai_types.GenerateContentConfig(
             temperature=0.5,
             max_output_tokens=2048,
             tools=tools,
+            safety_settings=safety_settings,
             thinking_config=genai_types.ThinkingConfig(thinking_budget=0),
         )
         stream = self.client.models.generate_content_stream(
