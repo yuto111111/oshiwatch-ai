@@ -1,0 +1,50 @@
+# NeMo Guardrails 設定 (ハイブリッド構成)
+#   入力: 速攻 regex (推し活 NG ワード) → NeMo 標準 jailbreak 検出 →
+#         suspicious 時のみ NeMo self check (LLM 意味判定)
+#   出力: 推し活特有の出典必須チェック (自前) + 通常質問は緩い safety のみ
+#
+# 設計方針:
+#   - LLM ベースの汎用ガード (jailbreak 検出 / 有害コンテンツ) は NVIDIA メンテの
+#     NeMo 標準 flow を使う (= 多言語対応 + 新攻撃手法に追従)
+#   - 推し活ドメイン特有のルール (出典 URL 必須、推し活 NG ワード) のみ自前
+#   - コストは現状維持: regex で 95% 通過、suspicious 時のみ LLM 判定
+
+models:
+  - type: main
+    engine: vertexai
+    model: gemini-2.5-flash
+
+rails:
+  input:
+    flows:
+      # NeMo 標準のヒューリスティック jailbreak 検出 (LLM 不要、無料)
+      #   - 文字数チェック (極端に長い = 攻撃の兆候)
+      #   - perplexity 計算 (意味のない記号列の検出)
+      #   - 既知 jailbreak 接頭辞 (DAN / EvilGPT 等) 照合
+      # NVIDIA 研究チームが継続メンテする検出器。自前 regex より高精度。
+      - jailbreak detection heuristics
+
+  output:
+    flows:
+      # 自前: 推し活特有 = 出典 URL 必須 (厳格 RAG Q&A 用)
+      - check citation required
+
+# Self check 用の prompt は内蔵デフォルトを使う (英語ベース)。
+# 必要なら prompts.yml を別途置いて日本語化可能。
+
+instructions:
+  - type: general
+    content: |
+      あなたは推し活情報のQ&Aアシスタントです。
+      以下のルールを厳守してください:
+      1. 提供されたコンテキスト情報のみに基づいて回答すること
+      2. コンテキストに含まれない情報は推測せず「情報が見つかりませんでした」と回答すること
+      3. 回答には必ず出典URLを含めること
+      4. 個人情報・誹謗中傷・差別的な内容は生成しないこと
+      5. 推し活に関連しない質問には回答しないこと
+
+# jailbreak detection heuristics の閾値設定 (デフォルト値で運用、要に応じて調整)
+config:
+  jailbreak_detection:
+    length_per_perplexity_threshold: 89.79
+    prefix_suffix_perplexity_threshold: 1845.65

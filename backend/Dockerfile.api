@@ -2,10 +2,18 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# nemoguardrails が依存する annoy (C 拡張) ビルドに必要なパッケージ。
+# pip install 完了後に削除してイメージサイズを抑える。
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-dev \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+  && apt-get purge -y build-essential python3-dev \
+  && apt-get autoremove -y
 
 COPY src ./src
 
-# Cloud Run が注入する $PORT でリッスンする
 CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from supabase import Client
 
+from src.guardrails import validate_input
 from src.schemas.chat import ChatRequest
 from src.services.chat_history import trim_history
 from src.services.gemini_client import gemini_client
-from src.services.guardrails import validate_input
 from src.services.supabase_client import get_supabase_client
 
 router = APIRouter()
@@ -142,7 +142,7 @@ def _user_context_block(supabase: Client, user_id: str | None) -> str:
 async def chat(req: ChatRequest, supabase: Client = Depends(get_supabase_client)):
     question = req.messages[-1].content
 
-    error = validate_input(question)
+    error = await validate_input(question)
     if error:
 
         async def error_stream():

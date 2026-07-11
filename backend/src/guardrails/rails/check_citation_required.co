@@ -1,0 +1,9 @@
+# 出典強制チェック (#43)
+# 回答に出典URL が含まれていない場合、拒否テンプレートに置き換える。
+
+define flow check citation required
+  $has_citation = execute check_citation_present(bot_response=$bot_message)
+
+  if not $has_citation
+    bot provide no citation response
+    stop
