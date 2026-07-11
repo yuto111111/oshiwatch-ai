@@ -29,7 +29,9 @@ steps:
       - --platform=managed
       - --allow-unauthenticated
       - --service-account=oshiwatch-jobs@${PROJECT_ID}.iam.gserviceaccount.com
-      - --set-env-vars=SUPABASE_URL=${_SUPABASE_URL},GOOGLE_CLOUD_PROJECT=${PROJECT_ID},VERTEX_AI_LOCATION=${_REGION},CORS_ORIGINS=${_FRONTEND_URL}
+      # CORS_ORIGINS はカンマ区切りで複数指定するため、
+      # gcloud の delimiter を "^;^" に変更して値内カンマを許可する
+      - --set-env-vars=^;^SUPABASE_URL=${_SUPABASE_URL};GOOGLE_CLOUD_PROJECT=${PROJECT_ID};VERTEX_AI_LOCATION=${_REGION};CORS_ORIGINS=${_CANONICAL_URL},${_FRONTEND_URL}
       - --set-secrets=SUPABASE_SERVICE_ROLE_KEY=supabase-service-role-key:latest
       - --min-instances=0
       - --max-instances=2
@@ -110,6 +112,7 @@ substitutions:
   _SUPABASE_URL: https://pgrlbrvkhoosuwrzuvbo.supabase.co
   _BACKEND_URL: https://oshiwatch-backend-630341683686.asia-northeast1.run.app
   _FRONTEND_URL: https://oshiwatch-frontend-630341683686.asia-northeast1.run.app
+  _CANONICAL_URL: https://devtest.oshikatsu-ai.com
 
 images:
   - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/backend:${SHORT_SHA}
