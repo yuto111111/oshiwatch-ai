@@ -26,16 +26,34 @@ class SummarizeJob(BaseJob):
     name = "summarize"
 
     def run(self) -> None:
-        members = self.supabase.table("members").select("id, name").execute().data or []
+        members = (
+            self.supabase.table("members")
+            .select("id, name, group_name")
+            .execute()
+            .data
+            or []
+        )
+        # STARTO 公式スケジュールは Snow Man 固有なので Snow Man 系のみ使用
         schedule_html = self._fetch_official_schedule_html()
 
-        # グループ全体
-        self._summarize_target(member_id=None, name="Snow Man", schedule_html=schedule_html)
+        # グループ全体まとめ (member_id=NULL 記事から生成)。
+        # 対応中の全グループを合わせた 1 本のまとめを作る。
+        groups = sorted(
+            {m["group_name"] for m in members if m.get("group_name")}
+        )
+        group_label = " / ".join(groups) if groups else "推し"
+        self._summarize_target(
+            member_id=None, name=group_label, schedule_html=schedule_html
+        )
 
-        # メンバー個別
+        # メンバー個別 (schedule_html は Snow Man 系のみ有効)
         for member in members:
+            grp = (member.get("group_name") or "").strip()
+            schedule_for_member = schedule_html if grp == "Snow Man" else None
             self._summarize_target(
-                member_id=member["id"], name=member["name"], schedule_html=schedule_html
+                member_id=member["id"],
+                name=member["name"],
+                schedule_html=schedule_for_member,
             )
 
     def _summarize_target(self, member_id: str | None, name: str, schedule_html: str | None) -> None:

@@ -36,16 +36,30 @@ class CrawlJob(BaseJob):
     name = "crawl"
 
     def run(self) -> None:
-        members = self.supabase.table("members").select("id, name").execute().data or []
+        members = (
+            self.supabase.table("members")
+            .select("id, name, group_name")
+            .execute()
+            .data
+            or []
+        )
 
         total_inserted = 0
-        # グループ全体 (member_id = NULL)
-        total_inserted += self._crawl_and_store(member_id=None, query="Snow Man")
+        # グループ全体 (member_id = NULL)。 対応中の全グループそれぞれで検索し
+        # 記事を member_id=NULL 行にまとめて蓄積する。
+        groups = sorted(
+            {m["group_name"] for m in members if m.get("group_name")}
+        )
+        for group in groups:
+            total_inserted += self._crawl_and_store(member_id=None, query=group)
 
-        # メンバー個別
+        # メンバー個別: "{group_name} {member_name}" で同姓同名を回避
         for member in members:
+            group = (member.get("group_name") or "").strip()
+            name = member["name"]
+            query = f"{group} {name}".strip() if group else name
             total_inserted += self._crawl_and_store(
-                member_id=member["id"], query=f"Snow Man {member['name']}"
+                member_id=member["id"], query=query
             )
 
         logger.info("Crawl complete: %d new articles inserted", total_inserted)
