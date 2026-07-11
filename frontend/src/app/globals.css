@@ -2,19 +2,207 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* OSHI HOME のページ単位で document.documentElement に設定される。
+     未設定時は theme primary (tailwind.config.ts) のフォールバックを使う。 */
+  --oshi-primary-color: #0EA5E9;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #F0F9FF;
 }
 
 @layer components {
+  /* メンバーカラー（推しごと）に追従するアクセント要素 */
+  .oshi-accent-bg {
+    background-color: var(--oshi-primary-color);
+  }
+  .oshi-accent-text {
+    color: var(--oshi-primary-color);
+  }
+  .oshi-accent-border {
+    border-color: var(--oshi-primary-color);
+  }
+  .oshi-accent-hero-bg {
+    background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--oshi-primary-color) 12%, white),
+      color-mix(in srgb, var(--oshi-primary-color) 18%, white)
+    );
+  }
+  .oshi-accent-avatar {
+    background-image: linear-gradient(
+      to bottom right,
+      var(--oshi-primary-color),
+      color-mix(in srgb, var(--oshi-primary-color) 60%, #0C4A6E)
+    );
+    color: white;
+  }
+  /* data-card-style によるバリエーション (ThemeColorApplier がセット) */
+  [data-card-style="solid"] .oshi-accent-avatar {
+    background-image: none;
+    background-color: var(--oshi-primary-color);
+    color: white;
+  }
+  [data-card-style="outline"] .oshi-accent-avatar {
+    background-image: none;
+    background-color: white;
+    border: 2px solid var(--oshi-primary-color);
+    color: var(--oshi-primary-color);
+  }
+  [data-card-style="minimal"] .oshi-accent-avatar {
+    background-image: none;
+    background-color: #F3F4F6;
+    color: var(--oshi-primary-color);
+  }
+
+  /* ヒーロー: 明るい水色のグラデ（E3 Powder Pastel）。テキストは accent (sky-900) で読ませる。 */
+  .hero-gradient {
+    background-image:
+      radial-gradient(ellipse 60% 50% at 80% 20%, rgba(255, 255, 255, 0.7), transparent 60%),
+      linear-gradient(135deg, #BAE6FD 0%, #7DD3FC 50%, #38BDF8 100%);
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity;
+  }
+  /* 副次 CTA: 白塗 + sky 細枠（E3-A 案）。明るい背景でも明確に浮く。 */
+  .btn-secondary {
+    @apply bg-white text-primary border border-secondary px-4 py-2 rounded-lg font-medium hover:bg-surface transition-colors;
+  }
+  /* 後方互換用エイリアス（黒ボタン廃止に伴い primary へ） */
+  .btn-dark {
+    @apply btn-primary;
+  }
+  .btn-ticket {
+    @apply bg-accent text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity;
+  }
   .card {
     @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden;
   }
   .card-hover {
     @apply card hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
   }
-  .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity;
+  .section-title {
+    @apply text-lg font-bold text-gray-800 mb-4;
+  }
+
+  /* ==========================================================
+     ダッシュボード用デザイン強化 (theme color 連動)
+     ========================================================== */
+
+  /* ダッシュボードのページ背景: theme color の薄いウォッシュ。
+     上部から下にかけて theme→白へグラデ。色が変わると印象がガラッと変わる。 */
+  .dashboard-page-bg {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% 0%,
+        color-mix(in srgb, var(--oshi-primary-color) 14%, white),
+        transparent 70%),
+      linear-gradient(to bottom,
+        color-mix(in srgb, var(--oshi-primary-color) 6%, white) 0%,
+        #F8FAFC 100%);
+    min-height: 100vh;
+  }
+
+  /* ダッシュボード見出し帯: 大胆な theme グラデ + ドットパターン。
+     ヒーローっぽさを出して "デザインされた感" を演出。 */
+  .dashboard-hero {
+    background-image:
+      radial-gradient(circle at 90% 30%,
+        color-mix(in srgb, var(--oshi-primary-color) 35%, white),
+        transparent 50%),
+      linear-gradient(135deg,
+        var(--oshi-primary-color) 0%,
+        color-mix(in srgb, var(--oshi-primary-color) 70%, #0C4A6E) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .dashboard-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.18) 1px, transparent 0);
+    background-size: 24px 24px;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* セクション見出し: 左に theme color の縦アクセントバー。 */
+  .section-title-accent {
+    @apply text-lg font-bold text-gray-800 mb-4 pl-3 relative;
+  }
+  .section-title-accent::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    width: 4px;
+    border-radius: 4px;
+    background-color: var(--oshi-primary-color);
+  }
+
+  /* カードに theme color のホバー反応を追加 */
+  .card-themed {
+    @apply bg-white rounded-2xl border border-gray-100 transition-all duration-200;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .card-themed:hover {
+    border-color: color-mix(in srgb, var(--oshi-primary-color) 40%, transparent);
+    box-shadow:
+      0 8px 24px -8px color-mix(in srgb, var(--oshi-primary-color) 25%, transparent),
+      0 2px 4px rgba(15, 23, 42, 0.06);
+    transform: translateY(-2px);
+  }
+
+  /* 推しカードの並び方 (ThemeColorApplier がセットする data-card-layout 経由) */
+  [data-card-layout="list"] .oshi-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-card-layout="grid"] .oshi-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 768px) {
+    [data-card-layout="grid"] .oshi-card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    [data-card-layout="grid"] .oshi-card-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  /* compact: グリッド + 内側のカードを小さく */
+  [data-card-layout="compact"] .oshi-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  @media (min-width: 640px) {
+    [data-card-layout="compact"] .oshi-card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  /* compact 時はカード内の余白を詰めて情報密度を上げる */
+  [data-card-layout="compact"] .oshi-card-grid > div {
+    font-size: 13px;
+  }
+  [data-card-layout="compact"] .oshi-card-grid [data-testid="oshi-card-link"] {
+    padding: 0.75rem;
+  }
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-genre {
+    @apply badge bg-sky-100 text-sky-700;
+  }
+  .chip {
+    @apply inline-flex items-center px-3 py-1.5 rounded-full text-sm border cursor-pointer transition-colors;
+  }
+  .chip-active {
+    @apply chip bg-primary text-white border-primary;
+  }
+  .chip-inactive {
+    @apply chip bg-white text-gray-600 border-gray-300 hover:border-primary hover:text-primary;
   }
 }

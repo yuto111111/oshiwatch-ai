@@ -1,0 +1,27 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["REPLACE_TEAM_ID.com.oshikatsuai.app"],
+        "components": [
+          {
+            "/": "/auth/callback",
+            "comment": "Magic Link / OAuth callback (mobile)"
+          },
+          {
+            "/": "/entities/*",
+            "comment": "推し詳細ページの Deep Link"
+          },
+          {
+            "/": "/onboarding",
+            "comment": "オンボーディング Deep Link"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["REPLACE_TEAM_ID.com.oshikatsuai.app"]
+  }
+}

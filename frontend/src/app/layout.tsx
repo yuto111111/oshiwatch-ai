@@ -1,13 +1,33 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Music2 } from "lucide-react";
-
+import Script from "next/script";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import PageViewTracker from "@/components/analytics/PageViewTracker";
+import { ToastProvider } from "@/components/ui/Toast";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
+import { getServerLocale } from "@/lib/i18n/getServerLocale";
+import JsonLd from "@/components/seo/JsonLd";
+import {
+  buildWebSiteJsonLd,
+  buildOrganizationJsonLd,
+} from "@/lib/seo/json-ld";
+import { GA_MEASUREMENT_ID } from "@/lib/analytics/gtag";
 import "./globals.css";
 
+const SITE_NAME = "推し活AI";
+const SITE_BASE = "https://devtest.oshikatsu-ai.com";
+
 export const metadata: Metadata = {
-  title: "推し活AI",
-  description:
-    "アイドル・K-POP など推しの動向、あなたの推し活の活動記録、チケットや予定の管理を推し活AI一つで。",
+  metadataBase: new URL(SITE_BASE),
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: "推しの情報まとめと AI チャットで、推し活をもっと楽に。",
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -15,31 +35,35 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const initialLocale = getServerLocale();
   return (
-    <html lang="ja">
-      <body className="min-h-screen flex flex-col">
-        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100">
-          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center">
-            <Link href="/" className="flex items-center gap-2 font-bold text-gray-800">
-              <span className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center">
-                <Music2 className="w-4 h-4" />
-              </span>
-              推し活AI
-            </Link>
-          </div>
-        </header>
+    <html lang={initialLocale}>
+      <body className="bg-surface min-h-screen flex flex-col">
+        <JsonLd data={[buildWebSiteJsonLd(), buildOrganizationJsonLd()]} />
 
-        <div className="flex-1">{children}</div>
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`}
+            </Script>
+          </>
+        )}
 
-        <footer className="mt-8 bg-white border-t-2 border-gray-200">
-          <div className="max-w-5xl mx-auto px-4 py-6 flex items-center gap-2 text-sm text-gray-400">
-            <span className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
-              <Music2 className="w-3 h-3" />
-            </span>
-            <span>推し活AI · 推しの動向を AI がまとめる</span>
-            <span className="ml-auto">&copy; 2026 推し活AI</span>
-          </div>
-        </footer>
+        <LocaleProvider initialLocale={initialLocale}>
+          <ToastProvider>
+            <Header />
+            <PageViewTracker />
+            <main className="flex-1 pb-14 md:pb-0">{children}</main>
+            <Footer />
+          </ToastProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

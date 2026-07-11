@@ -18,6 +18,10 @@ alter table demo_users enable row level security;
 drop policy if exists "public read demo_users" on demo_users;
 create policy "public read demo_users" on demo_users for select using (true);
 
+-- PostgREST 経由でアクセスするために各ロールに SELECT を明示的に付与
+-- (RLS ポリシーとは別に、テーブルレベルの GRANT が必要)
+grant select on demo_users to anon, authenticated, service_role;
+
 -- サンプルユーザ 3 名を seed
 -- members.name_en は "koji-mukai", "ren-meguro", "hikaru-iwamoto" 等の
 -- "first-last" フルネーム形式 (initial_schema seed 参照)
