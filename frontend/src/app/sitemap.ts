@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { SNOW_MAN_MEMBERS } from "@/lib/data/snow-man";
+import { OSHI_LIST } from "@/lib/data/oshi-list";
 
 const BASE = "https://devtest.oshikatsu-ai.com";
 
@@ -8,12 +8,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticEntries: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: now, changeFrequency: "daily", priority: 1.0 },
-    { url: `${BASE}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/search`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/dashboard`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${BASE}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const entityEntries: MetadataRoute.Sitemap = SNOW_MAN_MEMBERS.map((m) => ({
+  const entityEntries: MetadataRoute.Sitemap = OSHI_LIST.map((m) => ({
     url: `${BASE}/entities/${m.name_en}`,
     lastModified: now,
     changeFrequency: "daily",

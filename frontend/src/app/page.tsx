@@ -50,6 +50,12 @@ export default async function HomePage() {
                 <strong>推し活</strong> をもっと楽に。
               </p>
               <div className="flex flex-wrap gap-3 mt-5">
+                <Link href="/search" className="btn-primary text-sm">
+                  推しを探す
+                </Link>
+                <Link href="/dashboard" className="btn-secondary text-sm">
+                  ダッシュボード
+                </Link>
                 <Link
                   href="/about"
                   className="inline-flex items-center gap-1 text-sm font-semibold text-sky-700 hover:text-sky-900 hover:underline underline-offset-4 self-center"
@@ -67,7 +73,7 @@ export default async function HomePage() {
             <Sparkles size={13} className="text-primary" />
             <span className="text-gray-600">対応中の推し</span>
             <span className="font-bold" style={{ color: BRAND_SKY }}>
-              Snow Man 9 名
+              5 グループ 32 名
             </span>
           </div>
         </div>

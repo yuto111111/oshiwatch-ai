@@ -5,7 +5,7 @@
  */
 
 import { apiFetch } from "./client";
-import { SNOW_MAN_GROUP, SNOW_MAN_MEMBERS, findMember } from "@/lib/data/snow-man";
+import { OSHI_LIST, OSHI_GROUPS, findOshi } from "@/lib/data/oshi-list";
 import type {
   Entity,
   DailySummary,
@@ -57,31 +57,34 @@ type RemoteGroupSummary = {
   sources: { title: string; url: string }[];
 };
 
-function memberToEntity(m: RemoteMemberCard): Entity {
+function memberToEntity(m: RemoteMemberCard, group?: string): Entity {
+  const staticData = findOshi(m.name_en);
   return {
     id: m.name_en,
     slug: m.name_en,
     canonical_name: m.name,
     names_jsonb: { ja: m.name, en: m.name_en },
     genre: "アイドル",
-    country: "JP",
+    country: staticData?.group === "SEVENTEEN" ? "KR" : "JP",
     official_links: [],
     icon: m.image_url ?? "",
     follower_count: 0,
-    member_color: m.color ?? undefined,
+    member_color: m.color ?? staticData?.color ?? undefined,
     entity_type: "member",
-    parent_entity_id: SNOW_MAN_GROUP.id,
-    parent: {
-      id: SNOW_MAN_GROUP.id,
-      slug: SNOW_MAN_GROUP.id,
-      canonical_name: SNOW_MAN_GROUP.name,
-    },
+    parent_entity_id: staticData?.group ?? group ?? "",
+    parent: staticData
+      ? {
+          id: staticData.group.toLowerCase().replace(/\s+/g, "-"),
+          slug: staticData.group.toLowerCase().replace(/\s+/g, "-"),
+          canonical_name: staticData.group,
+        }
+      : null,
   };
 }
 
 /** name_en から Entity を返す (静的マスタで解決) */
 export async function fetchEntity(id: string): Promise<Entity> {
-  const found = findMember(id);
+  const found = findOshi(id);
   if (!found) throw new Error(`Entity not found: ${id}`);
   return {
     id: found.name_en,
@@ -89,17 +92,17 @@ export async function fetchEntity(id: string): Promise<Entity> {
     canonical_name: found.name,
     names_jsonb: { ja: found.name, en: found.name_en },
     genre: "アイドル",
-    country: "JP",
+    country: found.group === "SEVENTEEN" ? "KR" : "JP",
     official_links: [],
     icon: "",
     follower_count: 0,
     member_color: found.color,
     entity_type: "member",
-    parent_entity_id: SNOW_MAN_GROUP.id,
+    parent_entity_id: found.group.toLowerCase().replace(/\s+/g, "-"),
     parent: {
-      id: SNOW_MAN_GROUP.id,
-      slug: SNOW_MAN_GROUP.id,
-      canonical_name: SNOW_MAN_GROUP.name,
+      id: found.group.toLowerCase().replace(/\s+/g, "-"),
+      slug: found.group.toLowerCase().replace(/\s+/g, "-"),
+      canonical_name: found.group,
     },
   };
 }
@@ -121,10 +124,10 @@ export async function fetchDailySummary(id: string): Promise<DailySummary | null
   };
 }
 
-/** 全 Snow Man メンバーカード一覧 */
+/** 全メンバーカード一覧 (backend が返す全推し) */
 export async function fetchMemberCards(): Promise<Entity[]> {
   const res = await apiFetch<RemoteMemberSummaries>(`/api/summaries/members`);
-  return (res.members ?? []).map(memberToEntity);
+  return (res.members ?? []).map((m) => memberToEntity(m));
 }
 
 /** ホームの人気推し 5 件 */
@@ -153,7 +156,7 @@ export async function fetchGroupTodaySummary(): Promise<DailySummary | null> {
   const res = await apiFetch<RemoteGroupSummary>(`/api/summaries/group/today`);
   if (!res.summary) return null;
   return {
-    entity_id: SNOW_MAN_GROUP.id,
+    entity_id: "group",
     date: res.date ?? new Date().toISOString().slice(0, 10),
     summary: res.summary,
     bullets: res.bullets ?? [],
@@ -161,9 +164,8 @@ export async function fetchGroupTodaySummary(): Promise<DailySummary | null> {
   };
 }
 
-/** ダミー: 型シグネチャ互換のため残す */
 export async function fetchMembers(_id: string): Promise<MemberSummary[]> {
-  return SNOW_MAN_MEMBERS.map((m) => ({
+  return OSHI_LIST.map((m) => ({
     id: m.name_en,
     slug: m.name_en,
     canonical_name: m.name,
