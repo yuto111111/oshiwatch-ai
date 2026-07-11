@@ -1,8 +1,7 @@
 // ハッカソン用ホーム: 本家 UI パターンを踏襲しつつ auth / trending / community を撤去。
 // oshiwatch-ai バックエンドから Snow Man の今日のまとめを SSR で取得して表示する。
 
-import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import TopicsList from "@/components/dashboard/TopicsList";
 import { fetchHomeTopics } from "@/lib/api/entities";
 import type { GlobalTopics } from "@/types";
@@ -49,15 +48,6 @@ export default async function HomePage() {
                 推しの情報まとめと <strong>AI チャット</strong> で、
                 <strong>推し活</strong> をもっと楽に。
               </p>
-              <div className="flex flex-wrap gap-3 mt-5">
-                <Link
-                  href="/about"
-                  className="inline-flex items-center gap-1 text-sm font-semibold text-sky-700 hover:text-sky-900 hover:underline underline-offset-4 self-center"
-                >
-                  推し活AI とは
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
             </div>
           </div>
 

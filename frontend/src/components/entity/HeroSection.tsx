@@ -3,23 +3,24 @@
 // Phase 3: design/home-preview ベースの写真ファースト Hero。
 // 旧版は frontend/src/app/_legacy/HeroSection-v1.tsx に退避。
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Entity } from "@/types";
 import { formatNumber } from "@/lib/utils/format";
 import { safeUrl } from "@/lib/utils/safe-url";
 import { Heart, Share2 } from "lucide-react";
-import Link from "next/link";
 
 type EntityImage = { url: string; source: string };
 
 interface HeroSectionProps {
   entity: Entity;
-  isFollowing: boolean;
-  onFollowToggle?: () => void;
-  followLoading?: boolean;
-  isLoggedIn?: boolean;
   // 右側に並べる任意スロット (グループ詳細ではメンバー一覧)
   sideSlot?: React.ReactNode;
+}
+
+// 認証機能が無いため、フォロー状態はブラウザの localStorage に保存する
+// （ログイン不要・この端末のこのブラウザだけで有効）
+function followStorageKey(entityId: string): string {
+  return `oshiwatch:follow:${entityId}`;
 }
 
 function classifyLink(label: string | undefined, url: string): { name: string; emoji: string } {
@@ -40,16 +41,24 @@ const DEFAULT_ACCENT = "#0EA5E9";
 
 export default function HeroSection({
   entity,
-  isFollowing,
-  onFollowToggle,
-  followLoading = false,
-  isLoggedIn = false,
   sideSlot,
 }: HeroSectionProps) {
   const accent = entity.member_color || DEFAULT_ACCENT;
 
   // ハッカソン用: 画像取得は行わない (entity.icon のみ使用)
   const [remoteImage] = useState<EntityImage | null>(null);
+
+  // ログイン不要のフォロー機能。初回マウント時に localStorage から復元する
+  const [isFollowing, setIsFollowing] = useState(false);
+  useEffect(() => {
+    setIsFollowing(localStorage.getItem(followStorageKey(entity.id)) === "1");
+  }, [entity.id]);
+
+  const handleFollowToggle = () => {
+    const next = !isFollowing;
+    setIsFollowing(next);
+    localStorage.setItem(followStorageKey(entity.id), next ? "1" : "0");
+  };
 
   const iconLooksLikeUrl =
     entity.icon && (entity.icon.startsWith("http://") || entity.icon.startsWith("https://"));
@@ -160,40 +169,26 @@ export default function HeroSection({
 
       {/* Action bar (写真直下) */}
       <div className="max-w-6xl mx-auto px-4 lg:px-6 py-4 flex flex-wrap items-center gap-3 border-b border-gray-100">
-        {isLoggedIn ? (
-          <button
-            onClick={onFollowToggle}
-            disabled={followLoading}
-            className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-bold transition-all disabled:opacity-50"
-            style={
-              isFollowing
-                ? { background: "#fff", color: accent, border: `1.5px solid ${accent}` }
-                : {
-                    background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                    color: "#fff",
-                    boxShadow: `0 4px 12px ${accent}66`,
-                  }
-            }
-          >
-            <Heart
-              size={15}
-              fill={isFollowing ? accent : "transparent"}
-              stroke={isFollowing ? accent : "#fff"}
-            />
-            {followLoading ? "..." : isFollowing ? "フォロー中" : "フォローする"}
-          </button>
-        ) : (
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-bold text-white transition-all"
-            style={{
-              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-            }}
-          >
-            <Heart size={15} stroke="#fff" />
-            ログインしてフォロー
-          </Link>
-        )}
+        <button
+          onClick={handleFollowToggle}
+          className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-bold transition-all"
+          style={
+            isFollowing
+              ? { background: "#fff", color: accent, border: `1.5px solid ${accent}` }
+              : {
+                  background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                  color: "#fff",
+                  boxShadow: `0 4px 12px ${accent}66`,
+                }
+          }
+        >
+          <Heart
+            size={15}
+            fill={isFollowing ? accent : "transparent"}
+            stroke={isFollowing ? accent : "#fff"}
+          />
+          {isFollowing ? "フォロー中" : "フォローする"}
+        </button>
         <button
           onClick={handleShare}
           className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50"

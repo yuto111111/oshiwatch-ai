@@ -38,12 +38,7 @@ export default async function EntityDetailPage({ params }: Props) {
         </Link>
       </div>
 
-      <HeroSection
-        entity={entity}
-        isFollowing={false}
-        isLoggedIn={false}
-        followLoading={false}
-      />
+      <HeroSection entity={entity} />
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {summary ? (
@@ -57,9 +52,6 @@ export default async function EntityDetailPage({ params }: Props) {
         <section className="card p-5">
           <div className="mb-3">
             <h3 className="section-title-accent !mb-1">AI に質問する</h3>
-            <p className="text-xs text-gray-500">
-              {entity.canonical_name} について気になることを聞いてみてください。
-            </p>
           </div>
           <AIChatPanel
             entityId={entity.id}
