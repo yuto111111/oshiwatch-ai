@@ -1,11 +1,11 @@
 "use client";
 
-// ハッカソン用ミニマル Header (auth / notification / settings / community 削除)。
-// ロゴ + 「推しを探す」だけの構成。
+// ハッカソン用 Header (auth なし)。
+// ホーム / 推しを探す / ダッシュボード の 3 nav。
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Music2 } from "lucide-react";
+import { Home, Search, LayoutDashboard, Music2 } from "lucide-react";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -15,7 +15,11 @@ export default function Header() {
   const pathname = usePathname();
   const { t } = useLocale();
 
-  const navItems = [{ href: "/", label: t("nav.home"), icon: Home }];
+  const navItems = [
+    { href: "/", label: t("nav.home"), icon: Home },
+    { href: "/search", label: "推しを探す", icon: Search },
+    { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
+  ];
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -70,6 +74,35 @@ export default function Header() {
           </div>
         </div>
       </header>
+
+      {/* モバイル下部固定ナビ */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 flex md:hidden border-t backdrop-blur"
+        style={{
+          background: "rgba(255,255,255,0.96)",
+          borderColor: "#CBD5E1",
+        }}
+      >
+        {navItems.map(({ icon: Icon, label, href }) => {
+          const active = isActive(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors"
+              style={{ color: active ? BRAND_SKY : "#475569" }}
+            >
+              <Icon size={20} stroke={active ? BRAND_SKY : "#475569"} />
+              <span
+                className="text-[10px] font-medium"
+                style={{ fontWeight: active ? 700 : 500 }}
+              >
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </>
   );
 }
