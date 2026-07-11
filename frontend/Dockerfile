@@ -1,7 +1,10 @@
 FROM node:20-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# npm ci は package-lock.json と完全一致していないと失敗する。
+# Windows(ローカル)とLinux(Cloud Build)でプラットフォーム固有の
+# optionalDependencies解決が食い違うことがあるため npm install を使う
+RUN npm install
 
 FROM node:20-slim AS builder
 WORKDIR /app
