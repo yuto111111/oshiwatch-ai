@@ -43,7 +43,6 @@ export default async function EntityDetailPage({ params }: Props) {
         isFollowing={false}
         isLoggedIn={false}
         followLoading={false}
-        onFollowToggle={() => {}}
       />
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
