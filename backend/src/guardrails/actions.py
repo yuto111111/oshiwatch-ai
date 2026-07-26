@@ -9,6 +9,19 @@ from __future__ import annotations
 
 import re
 
+# NeMo の flow (.co) から execute で呼ぶには @action 登録が必要。
+# nemoguardrails 不在の環境 (regex-only フォールバック) でも本モジュールは
+# __init__ から直接 import されるため、デコレータはダミーに差し替える
+try:
+    from nemoguardrails.actions import action
+except Exception:  # pragma: no cover
+
+    def action(*_args, **_kwargs):
+        def _decorator(fn):
+            return fn
+
+        return _decorator
+
 # 推し活ドメイン特有 NG ワード
 #   - ストーカー行為 / 私的情報の特定要求
 #   - アンチ的投稿の生成依頼
@@ -51,6 +64,7 @@ _OSHI_SPECIFIC_NG = [
 _CITATION_PATTERN = re.compile(r"https?://[^\s\)]+")
 
 
+@action(name="check_oshi_specific")
 async def check_oshi_specific(user_input: str) -> bool:
     """推し活ドメイン特有の NG パターンに該当するかチェックする。
 
@@ -66,6 +80,7 @@ async def check_oshi_specific(user_input: str) -> bool:
     return False
 
 
+@action(name="check_citation_present")
 async def check_citation_present(bot_response: str) -> bool:
     """回答に出典URLが含まれているかチェックする (厳格 RAG Q&A 用)。
 

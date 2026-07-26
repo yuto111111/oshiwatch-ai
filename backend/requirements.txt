@@ -12,5 +12,11 @@ beautifulsoup4>=4.12.0
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 # NeMo Guardrails: ハイブリッド (regex 速攻ブロック + LLM 微妙なケース判定)。
-# jailbreak detection heuristics + self check input を採用。
+# 標準 flow は self check input を採用 (jailbreak heuristics は torch 必須のため不使用)。
+# nemoguardrails 0.23+ は langchain 経由でしか Vertex AI を初期化できないため、
+# langchain 0.3 系 + langchain-google-vertexai 2 系をピン留めする
+# (1.x/3.x 系は非互換で `VertexAI is not fully defined` になる、2026-07-26 検証)
 nemoguardrails>=0.11.0
+langchain>=0.3,<0.4
+langchain-community>=0.3,<0.4
+langchain-google-vertexai>=2,<3

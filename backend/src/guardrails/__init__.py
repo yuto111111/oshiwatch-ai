@@ -21,9 +21,16 @@ LLM ステップを自動スキップし regex のみで動作する (フォー�
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 
-from src.guardrails.actions import (
+# nemoguardrails 0.23+ は Vertex AI を langchain 経由でのみ初期化できる。
+# この env は nemoguardrails の import 時に評価されるため、actions.py 経由の
+# import が走る前 (= 本モジュールの先頭) で設定する必要がある
+# (_get_rails 内での設定では手遅れだった、2026-07-26 検証)
+os.environ.setdefault("NEMOGUARDRAILS_LLM_FRAMEWORK", "langchain")
+
+from src.guardrails.actions import (  # noqa: E402
     check_citation_present,
     check_oshi_specific,
 )
@@ -182,15 +189,24 @@ def _get_rails():
     if _rails is not None or _rails_load_failed:
         return _rails
     try:
+        import os
+
+        # nemoguardrails 0.23+ は Vertex AI を langchain 経由でのみ初期化できる
+        # (未設定だと `No default base_url for provider 'vertexai'` でロード失敗
+        #  → 静かに regex-only になる事故が起きた、2026-07-26)
+        os.environ.setdefault("NEMOGUARDRAILS_LLM_FRAMEWORK", "langchain")
+
         from nemoguardrails import LLMRails, RailsConfig
 
         config_path = str(Path(__file__).parent)
         config = RailsConfig.from_path(config_path)
         _rails = LLMRails(config)
-        logger.info("NeMo Guardrails loaded from %s", config_path)
+        # ロード成否は運用上の重要シグナルなので WARNING で必ずログに出す
+        # (INFO はデフォルト設定で欠落し、フォールバック稼働に気づけなかった)
+        logger.warning("NeMo Guardrails loaded from %s", config_path)
         return _rails
     except Exception as e:
-        logger.info(
+        logger.warning(
             "NeMo Guardrails unavailable, regex-only fallback (%s: %s)",
             type(e).__name__,
             e,
