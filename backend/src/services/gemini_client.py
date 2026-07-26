@@ -246,9 +246,15 @@ class GeminiClient:
                             continue
                         for gc in getattr(gm, "grounding_chunks", []) or []:
                             web = getattr(gc, "web", None)
-                            uri = getattr(web, "uri", None) if web else None
-                            if uri and uri not in sources:
-                                sources.append(uri)
+                            if not web:
+                                continue
+                            # NOTE: web.uri は vertexaisearch.cloud.google.com の
+                            # リダイレクト URL (GCP 内部パス)。 ユーザーに露出
+                            # させない (インフラ構成の開示 + 短命で 404 になる)。
+                            # 表示には web.title (参照元ドメイン名) だけを使う
+                            title = getattr(web, "title", None)
+                            if title and title not in sources:
+                                sources.append(title)
                 except Exception:
                     logger.debug("failed to parse grounding metadata", exc_info=True)
 

@@ -11,7 +11,7 @@ import { safeUrl } from "@/lib/utils/safe-url";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-type Source = { title: string; url: string };
+type Source = { title: string; url: string | null };
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -167,17 +167,28 @@ export default function AIChatPanel({
               </div>
               {m.sources && m.sources.length > 0 && (
                 <div className="mt-2 space-y-1 border-t border-gray-200 pt-2">
-                  {m.sources.map((s, si) => (
-                    <a
-                      key={si}
-                      href={safeUrl(s.url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-[11px] text-primary hover:underline truncate"
-                    >
-                      {s.title || s.url}
-                    </a>
-                  ))}
+                  {m.sources.map((s, si) =>
+                    s.url ? (
+                      <a
+                        key={si}
+                        href={safeUrl(s.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-[11px] text-primary hover:underline truncate"
+                      >
+                        {s.title || s.url}
+                      </a>
+                    ) : (
+                      // grounding 参照元 (ドメイン名のみ)。GCP のリダイレクト
+                      // URL は露出させない方針のためリンクにしない
+                      <span
+                        key={si}
+                        className="block text-[11px] text-gray-400 truncate"
+                      >
+                        {s.title}
+                      </span>
+                    ),
+                  )}
                 </div>
               )}
             </div>

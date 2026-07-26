@@ -203,8 +203,11 @@ async def chat(req: ChatRequest, supabase: Client = Depends(get_supabase_client)
             if chunk["type"] == "delta":
                 yield _sse({"type": "delta", "text": chunk["text"]})
             elif chunk["type"] == "grounding_sources":
-                for url in chunk["sources"]:
-                    sources.append({"title": url, "url": url})
+                # Google 検索 grounding の参照元。 URL は GCP のリダイレクト
+                # パスなので出さず、参照ドメイン名の表示のみ (url=None は
+                # フロントでリンクなしテキストとして描画される)
+                for domain in chunk["sources"]:
+                    sources.append({"title": f"参照: {domain}", "url": None})
         yield _sse({"type": "sources", "sources": sources})
         yield _sse({"type": "done"})
 
