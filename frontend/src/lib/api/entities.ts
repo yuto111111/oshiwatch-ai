@@ -135,7 +135,7 @@ export async function fetchHomeTopics(): Promise<GlobalTopics> {
   const res = await apiFetch<RemoteMemberSummaries>(`/api/summaries/members`);
   const topics: GlobalTopic[] = (res.members ?? [])
     .filter((m) => m.summary)
-    .slice(0, 5)
+    .slice(0, 2)
     .map((m) => ({
       entity_id: m.name_en,
       slug: m.name_en,
